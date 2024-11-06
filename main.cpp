@@ -1,73 +1,51 @@
 #include <iostream>
 #include <queue>
-#include <random>
-#include <ctime>
+#include <vector>
+#include <string>
 
-struct Passenger {
-    double arrivalTime;
+struct PrintJob {
+    std::string user;
+    int priority;
+    double requestTime;
 };
 
-struct Bus {
-    double arrivalTime;
-    int freeSeats;
+struct PrintJobComparator {
+    bool operator()(const PrintJob& a, const PrintJob& b) {
+        return a.priority < b.priority;
+    }
 };
-
-double generateRandomTime(double mean) {
-    std::default_random_engine generator(time(0));
-    std::exponential_distribution<double> distribution(1.0 / mean);
-    return distribution(generator);
-}
 
 int main() {
-    double passengerArrivalMean, busArrivalMean;
-    int maxPassengers;
-    bool isTerminal;
+    std::priority_queue<PrintJob, std::vector<PrintJob>, PrintJobComparator> printQueue;
+    std::queue<PrintJob> printLog;
 
-    std::cout << "Enter average time between passenger arrivals: ";
-    std::cin >> passengerArrivalMean;
-    std::cout << "Enter average time between bus arrivals: ";
-    std::cin >> busArrivalMean;
-    std::cout << "Enter maximum number of passengers at the stop: ";
-    std::cin >> maxPassengers;
-    std::cout << "Is this a terminal stop? (1 for yes, 0 for no): ";
-    std::cin >> isTerminal;
+    int numJobs;
+    std::cout << "Enter number of print jobs: ";
+    std::cin >> numJobs;
 
-    std::queue<Passenger> passengerQueue;
-    std::queue<Bus> busQueue;
-
-    double currentTime = 0.0;
-    double totalWaitTime = 0.0;
-    int totalPassengers = 0;
-
-    while (true) {
-        double nextPassengerTime = generateRandomTime(passengerArrivalMean);
-        double nextBusTime = generateRandomTime(busArrivalMean);
-
-        currentTime += std::min(nextPassengerTime, nextBusTime);
-
-        if (nextPassengerTime < nextBusTime) {
-            Passenger newPassenger = {currentTime};
-            passengerQueue.push(newPassenger);
-            totalPassengers++;
-        } else {
-            Bus newBus = {currentTime, rand() % 20 + 1}; // Random free seats between 1 and 20
-            busQueue.push(newBus);
-
-            while (!passengerQueue.empty() && newBus.freeSeats > 0) {
-                Passenger passenger = passengerQueue.front();
-                passengerQueue.pop();
-                totalWaitTime += currentTime - passenger.arrivalTime;
-                newBus.freeSeats--;
-            }
-        }
-
-        if (passengerQueue.size() > maxPassengers) {
-            std::cout << "Too many passengers at the stop. Simulation ends." << std::endl;
-            break;
-        }
+    for (int i = 0; i < numJobs; ++i) {
+        PrintJob job;
+        std::cout << "Enter user name: ";
+        std::cin >> job.user;
+        std::cout << "Enter priority (higher number means higher priority): ";
+        std::cin >> job.priority;
+        job.requestTime = i * 5; // Simulate request time
+        printQueue.push(job);
     }
 
-    std::cout << "Average wait time: " << totalWaitTime / totalPassengers << " minutes" << std::endl;
+    while (!printQueue.empty()) {
+        PrintJob job = printQueue.top();
+        printQueue.pop();
+        printLog.push(job);
+        std::cout << "Printing job for user: " << job.user << " with priority: " << job.priority << std::endl;
+    }
+
+    std::cout << "\nPrint log:\n";
+    while (!printLog.empty()) {
+        PrintJob job = printLog.front();
+        printLog.pop();
+        std::cout << "User: " << job.user << ", Priority: " << job.priority << ", Request Time: " << job.requestTime << std::endl;
+    }
 
     return 0;
 }
