@@ -18,6 +18,7 @@ double generateRandomTime(double mean) {
     return distribution(generator);
 }
 
+
 int main() {
     double passengerArrivalMean, busArrivalMean;
     int maxPassengers;
